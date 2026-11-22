@@ -1,0 +1,20 @@
+-- =========================================================
+-- V19: Repair technicians.availability = 'BOOKED' rows.
+--
+-- V2__seed_data.sql used to write 'BOOKED' into this column for any
+-- technician on an active job. That value was never added to the
+-- TechnicianAvailability enum (AVAILABLE / OFF_DUTY only) — "ON_JOB" is
+-- derived at read time from active bookings, never persisted (see
+-- TechnicianService.enrich()). Loading a technician row with 'BOOKED'
+-- stored here throws IllegalArgumentException: No enum constant
+-- ...TechnicianAvailability.BOOKED, which 500s every admin endpoint that
+-- touches technician data (Members, Bookings, Technicians).
+--
+-- V2 has since been corrected so this never happens on a fresh database.
+-- This migration repairs any database where the old V2 already ran and
+-- left rows in this bad state. Being on active duty doesn't change the
+-- technician's stored on/off-duty toggle, so AVAILABLE is the correct
+-- value to restore — exactly what V2 sets on insert and what
+-- TechnicianService treats as the default.
+-- =========================================================
+UPDATE technicians SET availability = 'AVAILABLE' WHERE availability = 'BOOKED';

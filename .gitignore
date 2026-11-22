@@ -1,0 +1,29 @@
+# ─── Secrets — NEVER commit these ───────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.secret
+
+# ─── Frontend ────────────────────────────────────────────────────────────────
+oorja/fe/node_modules/
+oorja/fe/dist/
+oorja/fe/.vite/
+
+# ─── Backend ─────────────────────────────────────────────────────────────────
+oorja/be/target/
+oorja/be/uploads/
+oorja/be/*.jar
+!oorja/be/src/
+
+# ─── IDE / OS ────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/

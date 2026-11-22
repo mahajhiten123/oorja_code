@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--
+    GitHub Pages SPA redirect script.
+    When a user navigates directly to a deep path (e.g. /oorja_code/bookings),
+    GitHub Pages returns this 404.html. The script below encodes the path as a
+    query param and redirects to index.html, which then restores the original URL
+    via the companion snippet in index.html before React Router mounts.
+
+    Technique by Rafael Pedicini: https://github.com/rafgraph/spa-github-pages
+  -->
+  <script>
+    var l = window.location;
+    l.replace(
+      l.protocol + '//' + l.host + l.pathname.split('/').slice(0, 1).join('/') +
+      '/?p=' + encodeURIComponent(l.pathname.slice(1) + (l.search ? '&q=' + l.search.slice(1) : '')) +
+      l.hash
+    );
+  </script>
+</head>
+<body></body>
+</html>

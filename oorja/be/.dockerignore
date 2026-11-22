@@ -1,0 +1,10 @@
+# Ignore everything that shouldn't be in the Docker image
+target/
+!target/oorja-backend.jar
+.git/
+.github/
+uploads/
+*.log
+.env
+.env.local
+src/test/
