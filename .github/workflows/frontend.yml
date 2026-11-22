@@ -12,15 +12,13 @@ on:
       - 'oorja/fe/**'
       - '.github/workflows/frontend.yml'
 
-# Allow only one concurrent deployment; cancel in-progress runs on new pushes.
 concurrency:
-  group: pages-${{ github.ref }}
+  group: vercel-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ─── Build ─────────────────────────────────────────────────────────────────
-  build:
-    name: Build
+  deploy:
+    name: Build & Deploy to Vercel
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,42 +38,51 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type-check & build
+      - name: Type-check
+        run: npx tsc -b --noEmit
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      # Pull project settings + env vars from Vercel
+      - name: Pull Vercel environment
+        run: |
+          vercel pull --yes \
+            --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} \
+            --token=${{ secrets.VERCEL_TOKEN }}
         env:
-          # GitHub Pages serves from /oorja_code/ — set the base URL here.
-          VITE_BASE: /oorja_code/
-          # Backend URL injected at build time from GitHub Secrets.
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-          VITE_RAZORPAY_KEY_ID: ${{ secrets.VITE_RAZORPAY_KEY_ID }}
-        run: npm run build
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # Copy index.html → 404.html so GitHub Pages serves the SPA on unknown paths
-      - name: Fix SPA routing for GitHub Pages
-        run: cp dist/index.html dist/404.html
+      # Build using Vercel's build pipeline (respects vercel.json)
+      - name: Build
+        run: |
+          vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} \
+            --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Upload Pages artifact
-        # Only upload on pushes to main (not on PRs)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+      # Deploy the pre-built output
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt \
+            ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} \
+            --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
         with:
-          path: oorja/fe/dist
-
-  # ─── Deploy (main only) ────────────────────────────────────────────────────
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview deployed:** ${{ steps.deploy.outputs.url }}`
+            })
