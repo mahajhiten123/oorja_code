@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
-export const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+export const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID || "102477450077-vsjtr7r2tdnne44bthtg6qtqnh27jgce.apps.googleusercontent.com";
 
 let gisPromise: Promise<void> | null = null;
 

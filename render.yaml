@@ -20,6 +20,8 @@ services:
         value: admin@oorjaonmove.com
       - key: CORS_ALLOWED_ORIGINS
         value: "https://*.vercel.app,https://fe-nine-sigma.vercel.app,https://oorja-on-move.vercel.app,http://localhost:5173"
+      - key: GOOGLE_CLIENT_ID
+        value: "102477450077-vsjtr7r2tdnne44bthtg6qtqnh27jgce.apps.googleusercontent.com"
       - key: RAZORPAY_KEY_ID
         value: rzp_test_U3IO89Q2YmpVjo
       - key: RAZORPAY_KEY_SECRET
