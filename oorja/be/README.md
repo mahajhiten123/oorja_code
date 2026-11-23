@@ -39,7 +39,10 @@ Flyway will automatically create all tables and seed:
 | `JWT_SECRET` | HMAC signing key (32+ chars) | dev placeholder — **change in prod** |
 | `JWT_EXPIRATION_MS` | Token lifetime | `86400000` (24h) |
 | `MAIL_ENABLED` | `true` to send real emails, `false` to log OTPs to console | `true` |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | SMTP credentials | Gmail SMTP placeholders |
+| `MAIL_PROVIDER` | `smtp` or `resend`. Use `resend` on hosts that block outbound SMTP (Render free plan) | `smtp` |
+| `RESEND_API_KEY` | Resend API key; required when `MAIL_PROVIDER=resend`. `MAIL_FROM` must be on a domain verified in Resend | — |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | SMTP credentials (used when `MAIL_PROVIDER=smtp`) | Gmail SMTP placeholders |
+| `OTP_BYPASS_CODE` | Master OTP for a developer machine. The app refuses to start if it is set outside the `local`/`test` Spring profile | unset |
 | `OTP_LOG_TO_CONSOLE` | Print the OTP in the app console. Works only with `MAIL_ENABLED=false` **and** `SPRING_PROFILES_ACTIVE=local`; ignored under prod | `false` |
 | `MAIL_FROM` | From address shown in OTP emails | `no-reply@oorjaonmove.com` |
 | `MSG91_ENABLED` | `true` to send real SMS OTPs via MSG91, `false` to log them to console | `false` |

@@ -24,8 +24,10 @@ services:
         value: "102477450077-vsjtr7r2tdnne44bthtg6qtqnh27jgce.apps.googleusercontent.com"
       - key: RAZORPAY_KEY_ID
         value: rzp_test_U3IO89Q2YmpVjo
+      # Secret: enter it in the Render dashboard (sync: false keeps it out of git).
+      # The previous value was committed to git history, so rotate it in the Razorpay dashboard.
       - key: RAZORPAY_KEY_SECRET
-        value: W01ZMkbY9OSWsqxy8fCXur2D
+        sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         generateValue: true
       - key: STORAGE_PROVIDER
@@ -44,24 +46,18 @@ services:
         value: ""
       - key: CLOUDFLARE_R2_PUBLIC_URL_PREFIX
         value: ""
-      # ---------- Brevo SMTP (OTP emails from info@oorjaonmove.com) ----------
+      # Email OTP via Resend HTTPS API (works on Render free tier where outbound SMTP is blocked)
+      # or SMTP (Brevo / Gmail / Custom). Default provider is resend for Render deployment.
       - key: MAIL_ENABLED
         value: "true"
-      - key: MAIL_HOST
-        value: smtp-relay.brevo.com
-      - key: MAIL_PORT
-        value: "587"
-      - key: MAIL_USERNAME
-        value: info@oorjaonmove.com
-      - key: MAIL_FROM
-        value: info@oorjaonmove.com
-      - key: MAIL_PASSWORD
+      - key: MAIL_PROVIDER
+        value: resend
+      - key: RESEND_API_KEY
         sync: false
-      - key: OTP_LOG_TO_CONSOLE
-        value: "false"
-      # Keep bypass active for staging tests; set to empty string to disable
-      - key: OTP_BYPASS_CODE
-        value: "123456"
+      - key: MAIL_FROM
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
       - key: DB_HOST
         fromDatabase:
           name: oorja-db

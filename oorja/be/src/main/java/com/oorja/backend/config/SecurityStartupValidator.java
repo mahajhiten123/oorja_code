@@ -1,7 +1,10 @@
 package com.oorja.backend.config;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,9 +39,23 @@ public class SecurityStartupValidator {
     @Value("${app.admin.password:}")
     private String adminPassword;
 
+    @Value("${app.otp.bypass-code:}")
+    private String otpBypassCode;
+
+    @Autowired
+    private Environment environment;
+
     @PostConstruct
     public void validate() {
         List<String> problems = new java.util.ArrayList<>();
+
+        // A master OTP lets anyone log in as any customer or admin. Allow-list the profiles where it
+        // may exist rather than block-list "prod": a deploy that forgets to set a profile must fail closed.
+        if (otpBypassCode != null && !otpBypassCode.isBlank()
+                && !environment.acceptsProfiles(Profiles.of("local", "test"))) {
+            problems.add("app.otp.bypass-code (env: OTP_BYPASS_CODE) is set, but a bypass OTP is only allowed "
+                    + "under the 'local' or 'test' Spring profile. Unset OTP_BYPASS_CODE.");
+        }
 
         if (jwtSecret == null || jwtSecret.isBlank()) {
             problems.add("app.jwt.secret (env: JWT_SECRET) is not set.");

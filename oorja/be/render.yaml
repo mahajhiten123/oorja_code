@@ -9,7 +9,7 @@ services:
     dockerfilePath: ./oorja/be/Dockerfile
     plan: free
     region: oregon
-    healthCheckPath: /api/customer/services
+    healthCheckPath: /health
     envVars:
       - key: JWT_SECRET
         generateValue: true
@@ -19,20 +19,35 @@ services:
         value: admin@oorjaonmove.com
       - key: CORS_ALLOWED_ORIGINS
         value: "https://*.vercel.app,https://fe-nine-sigma.vercel.app,https://oorja-on-move.vercel.app,http://localhost:5173"
+      - key: GOOGLE_CLIENT_ID
+        value: "102477450077-vsjtr7r2tdnne44bthtg6qtqnh27jgce.apps.googleusercontent.com"
       - key: RAZORPAY_KEY_ID
         value: rzp_test_U3IO89Q2YmpVjo
+      # Secret: enter it in the Render dashboard (sync: false keeps it out of git).
+      # The previous value was committed to git history, so rotate it in the Razorpay dashboard.
       - key: RAZORPAY_KEY_SECRET
-        value: W01ZMkbY9OSWsqxy8fCXur2D
+        sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         generateValue: true
       - key: STORAGE_PROVIDER
         value: local
       - key: UPLOAD_DIR
         value: /tmp/oorja-uploads
+      # Email OTP via Resend's HTTPS API. Render's free plan blocks outbound SMTP, so MAIL_PROVIDER
+      # must stay "resend" there. Do NOT set OTP_BYPASS_CODE: the app refuses to start if it is set.
       - key: MAIL_ENABLED
-        value: "false"
-      - key: OTP_LOG_TO_CONSOLE
         value: "true"
+      - key: MAIL_PROVIDER
+        value: resend
+      # Resend API key - enter it in the Render dashboard.
+      - key: RESEND_API_KEY
+        sync: false
+      # Must be an address on a domain verified in Resend, e.g. "Oorja on Move <noreply@oorjaonmove.com>".
+      - key: MAIL_FROM
+        sync: false
+      # Where the CTA buttons in emails point (the deployed frontend).
+      - key: FRONTEND_BASE_URL
+        sync: false
       - key: DB_HOST
         fromDatabase:
           name: oorja-db

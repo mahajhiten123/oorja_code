@@ -14,10 +14,22 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * All outbound mail.
@@ -57,6 +69,19 @@ public class EmailService {
      */
     @Value("${app.otp.log-to-console:false}")
     private boolean otpLogToConsole;
+
+    /** "smtp" (JavaMailSender) or "resend" (HTTPS API - works where outbound SMTP ports are blocked). */
+    @Value("${app.mail.provider:smtp}")
+    private String mailProvider = "smtp";
+
+    @Value("${app.mail.resend.api-key:}")
+    private String resendApiKey = "";
+
+    @Value("${app.mail.resend.api-url:https://api.resend.com/emails}")
+    private String resendApiUrl = "https://api.resend.com/emails";
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
     /** Where customer support tickets are delivered. Defaults to the from-address. */
     @Value("${app.mail.support-inbox:}")
@@ -428,6 +453,68 @@ public class EmailService {
     // Delivery
     // =====================================================================
 
+    private boolean usesResend() {
+        return "resend".equalsIgnoreCase(mailProvider == null ? "" : mailProvider.trim());
+    }
+
+    /**
+     * Sends through the Resend HTTPS API. Throws on any failure so the callers' existing handling applies
+     * unchanged: OTP mail propagates the error, everything else is logged and swallowed. The response body is
+     * included in the exception because Resend puts the reason there (unverified domain, bad key, ...);
+     * it never contains the message we sent, so the OTP cannot leak into logs this way.
+     */
+    private void sendViaResend(String to, String subject, String html, String text, String replyTo,
+                               String attachmentName, byte[] attachmentBytes, boolean inlineLogo) throws Exception {
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            throw new IllegalStateException("MAIL_PROVIDER=resend but RESEND_API_KEY is not set.");
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("from", fromAddress);
+        payload.put("to", List.of(to));
+        payload.put("subject", subject);
+        if (html != null) payload.put("html", html);
+        if (text != null) payload.put("text", text);
+        if (replyTo != null && !replyTo.isBlank()) payload.put("reply_to", replyTo);
+
+        List<Map<String, Object>> attachments = new ArrayList<>();
+        if (inlineLogo) {
+            try {
+                ClassPathResource logo = new ClassPathResource("branding/oorja-logo.png");
+                if (logo.exists()) {
+                    Map<String, Object> a = new LinkedHashMap<>();
+                    a.put("filename", "oorja-logo.png");
+                    a.put("content", Base64.getEncoder().encodeToString(logo.getContentAsByteArray()));
+                    a.put("content_type", "image/png");
+                    a.put("content_id", "logo"); // referenced as cid:logo in htmlDocument()
+                    attachments.add(a);
+                }
+            } catch (Exception e) {
+                log.warn("Couldn't attach logo to email: {}", e.getMessage());
+            }
+        }
+        if (attachmentBytes != null && attachmentBytes.length > 0) {
+            Map<String, Object> a = new LinkedHashMap<>();
+            a.put("filename", attachmentName);
+            a.put("content", Base64.getEncoder().encodeToString(attachmentBytes));
+            attachments.add(a);
+        }
+        if (!attachments.isEmpty()) payload.put("attachments", attachments);
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(resendApiUrl))
+                .timeout(Duration.ofSeconds(10))
+                .header("Authorization", "Bearer " + resendApiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(JSON.writeValueAsString(payload)))
+                .build();
+
+        HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() / 100 != 2) {
+            throw new IllegalStateException("Resend rejected the message: HTTP " + response.statusCode()
+                    + " " + response.body());
+        }
+    }
+
     /** Plain-text delivery for internal ops mail. Failures are logged and swallowed. */
     private void sendPlain(String to, String subject, String body, String what) {
         if (to == null || to.isBlank()) {
@@ -439,6 +526,10 @@ public class EmailService {
             return;
         }
         try {
+            if (usesResend()) {
+                sendViaResend(to, subject, null, body, null, null, null, false);
+                return;
+            }
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromAddress);
             message.setTo(to);
@@ -479,6 +570,11 @@ public class EmailService {
             return;
         }
         try {
+            if (usesResend()) {
+                sendViaResend(to, subject, htmlDocument(title, bodyHtml, ctaLabel, ctaUrl), null,
+                        company.getEmail(), pdfFileName, pdfBytes, true);
+                return;
+            }
             MimeMessage mime = mailSender.createMimeMessage();
             // MIXED_RELATED supports an inline logo (cid:logo) and a PDF
             // attachment on the same message; plain HTML-only sends use the
