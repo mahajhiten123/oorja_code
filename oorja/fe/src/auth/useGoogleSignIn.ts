@@ -76,11 +76,16 @@ export function useGoogleSignIn({ onCredential, enabled = true }: Options) {
         google.accounts.id.renderButton(containerRef.current, {
           theme: "outline",
           size: "large",
-          width: containerRef.current.clientWidth || 320,
+          width: Math.max(240, Math.min(380, containerRef.current.clientWidth || 300)),
           text: "continue_with",
           shape: "rectangular"
         });
         setReady(true);
+        try {
+          google.accounts.id.prompt();
+        } catch {
+          // ignore prompt errors if browser suppresses one-tap
+        }
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
