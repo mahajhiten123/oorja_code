@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -48,7 +49,11 @@ import java.net.URI;
  * deliberately do not hand out public object URLs.
  */
 @Component
-@ConditionalOnProperty(name = "app.storage.provider", havingValue = "s3")
+@ConditionalOnExpression(
+        "'${app.storage.provider:local}'.equalsIgnoreCase('s3') || " +
+        "'${app.storage.provider:local}'.equalsIgnoreCase('r2') || " +
+        "'${app.storage.provider:local}'.equalsIgnoreCase('cloudflare')"
+)
 @RequiredArgsConstructor
 @Slf4j
 public class S3StorageProvider implements StorageProvider {

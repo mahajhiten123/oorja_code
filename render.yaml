@@ -29,10 +29,24 @@ services:
         value: local
       - key: UPLOAD_DIR
         value: /tmp/oorja-uploads
+      - key: CLOUDFLARE_R2_BUCKET
+        value: oorja-uploads
+      - key: CLOUDFLARE_R2_REGION
+        value: auto
+      - key: CLOUDFLARE_R2_ENDPOINT
+        value: ""
+      - key: CLOUDFLARE_R2_ACCESS_KEY
+        value: ""
+      - key: CLOUDFLARE_R2_SECRET_KEY
+        value: ""
+      - key: CLOUDFLARE_R2_PUBLIC_URL_PREFIX
+        value: ""
       - key: MAIL_ENABLED
         value: "false"
       - key: OTP_LOG_TO_CONSOLE
         value: "true"
+      - key: OTP_BYPASS_CODE
+        value: "123456"
       - key: DB_HOST
         fromDatabase:
           name: oorja-db

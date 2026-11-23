@@ -136,4 +136,16 @@ class OtpServiceTest {
         assertThatThrownBy(() -> service.verify("a@x.com", "123456", OtpPurpose.CUSTOMER_LOGIN))
                 .isInstanceOf(ApiException.class).hasMessageContaining("No OTP request");
     }
+
+    @Test
+    void bypassCodeAllowsVerificationWhenConfigured() {
+        ReflectionTestUtils.setField(service, "bypassCode", "999999");
+        OtpToken t = stored("123456", 0, LocalDateTime.now().plusMinutes(3));
+        whenTokenFound(t);
+
+        service.verify("a@x.com", "999999", OtpPurpose.CUSTOMER_LOGIN);
+
+        assertThat(t.isUsed()).isTrue();
+        verify(repo).save(t);
+    }
 }

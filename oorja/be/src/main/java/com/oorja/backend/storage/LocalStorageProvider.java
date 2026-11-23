@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -27,7 +28,11 @@ import java.nio.file.Paths;
  * production ({@code app.storage.provider=s3}).
  */
 @Component
-@ConditionalOnProperty(name = "app.storage.provider", havingValue = "local", matchIfMissing = true)
+@ConditionalOnExpression(
+        "!'${app.storage.provider:local}'.equalsIgnoreCase('s3') && " +
+        "!'${app.storage.provider:local}'.equalsIgnoreCase('r2') && " +
+        "!'${app.storage.provider:local}'.equalsIgnoreCase('cloudflare')"
+)
 @RequiredArgsConstructor
 @Slf4j
 public class LocalStorageProvider implements StorageProvider {

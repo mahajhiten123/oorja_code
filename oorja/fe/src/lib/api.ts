@@ -3,7 +3,7 @@
 // If the backend is unreachable, callers get a clear ApiError instead of a
 // silent fake success.
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://oorja-backend.onrender.com" : "http://localhost:8080");
 
 const TOKEN_KEY = "oorja_jwt";
 const ADMIN_TOKEN_KEY = "oorja_admin_jwt";

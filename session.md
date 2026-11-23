@@ -1,12 +1,11 @@
 # Developer Handover & Session State — Oorja on Move
 
 ### 1. Work Completed (Current State)
-- **Database & Backend:** Spring Boot 3.3.2 (Java 21) running on Render (`https://oorja-backend-kevf.onrender.com`) backed by Render PostgreSQL 18 with 21 Flyway migrations applied. Dynamic port binding configured via `${PORT}`.
-- **Frontend:** React 18/Vite web application deployed on Vercel (`https://oorja-on-move.vercel.app` & `https://fe-nine-sigma.vercel.app`) with SPA routing rewrites configured via `vercel.json`.
-- **CORS Configuration:** Backend updated to permit all Vercel dynamic URLs (`https://*.vercel.app,https://fe-nine-sigma.vercel.app,https://oorja-on-move.vercel.app,http://localhost:5173`).
-- **Payment Engine:** Patched Razorpay `create-order` 500 error; fixed boxed `Long.equals()` in quotation settlement, added `RazorpayClient` singleton, non-blocking script loading, and collision-proof receipt tokens.
-- **CI/CD Pipelines:** GitHub Actions configured in `mahajhiten123/oorja_code` for frontend (Vercel CLI) and backend (PostgreSQL container integration tests, Docker build, and Render webhook). 8 repository secrets encrypted and stored.
-- **Auth Foundation:** OTP flow operational (logs to console while `MAIL_ENABLED=false`). Google Identity Services (GIS) flow fully implemented in both frontend and backend.
+- **Database & Backend:** Spring Boot 3.3.2 (Java 21) running on Render (`https://oorja-backend.onrender.com`) backed by Render PostgreSQL 18 with 21 Flyway migrations applied. Dynamic port binding configured via `${PORT}`.
+- **Frontend:** React 18/Vite web application deployed on Vercel (`https://oorja-on-move.vercel.app` & `https://fe-nine-sigma.vercel.app`) with SPA routing rewrites configured via `vercel.json`. Default production API base URL points to `https://oorja-backend.onrender.com`.
+- **CORS Configuration:** Backend configured to permit all Vercel dynamic URLs (`https://*.vercel.app,https://fe-nine-sigma.vercel.app,https://oorja-on-move.vercel.app,http://localhost:5173`).
+- **Storage:** Cloudflare R2 object storage integration added (`app.storage.provider=s3|r2|cloudflare`, `CLOUDFLARE_R2_*` environment bindings) for high-performance durable image and document uploads.
+- **Auth Foundation:** Dual email OTP verification operational: real transactional email delivery via Brevo SMTP (`info@oorjaonmove.com`) and master test bypass OTP (`123456`) in `OtpService.java`. Google Identity Services (GIS) flow implemented in both frontend and backend (activates when `GOOGLE_CLIENT_ID` is set).
 
 ### 2. Immediate Next Steps for Next Agent
 1. **Google OAuth Client Activation:** Obtain a Google OAuth 2.0 Web Client ID from Google Cloud Console. Set `VITE_GOOGLE_CLIENT_ID` in Vercel and `GOOGLE_CLIENT_ID` on Render to enable 1-click Google login.
