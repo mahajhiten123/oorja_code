@@ -39,6 +39,10 @@ COPY --from=build /app/target/oorja-backend.jar app.jar
 EXPOSE 8080
 
 ENTRYPOINT ["java", \
+  "-XX:+UseSerialGC", \
+  "-XX:TieredStopAtLevel=1", \
+  "-Xmx384m", \
+  "-Xss512k", \
   "-Djava.security.egd=file:/dev/./urandom", \
   "-Dspring.profiles.active=prod", \
   "-jar", "app.jar"]
