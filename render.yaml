@@ -1,5 +1,6 @@
 # Render Blueprint Specification
 # Docs: https://render.com/docs/blueprint-spec
+# Service: oorja-backend-kevf (existing paid/starter service on Render)
 
 services:
   - type: web
@@ -7,7 +8,7 @@ services:
     runtime: docker
     dockerContext: ./oorja/be
     dockerfilePath: ./oorja/be/Dockerfile
-    plan: free
+    plan: starter
     region: oregon
     healthCheckPath: /api/customer/services
     envVars:
@@ -41,10 +42,22 @@ services:
         value: ""
       - key: CLOUDFLARE_R2_PUBLIC_URL_PREFIX
         value: ""
+      # ---------- Brevo SMTP (OTP emails from info@oorjaonmove.com) ----------
       - key: MAIL_ENABLED
-        value: "false"
-      - key: OTP_LOG_TO_CONSOLE
         value: "true"
+      - key: MAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        value: info@oorjaonmove.com
+      - key: MAIL_FROM
+        value: info@oorjaonmove.com
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: OTP_LOG_TO_CONSOLE
+        value: "false"
+      # Keep bypass active for staging tests; set to empty string to disable
       - key: OTP_BYPASS_CODE
         value: "123456"
       - key: DB_HOST
@@ -70,7 +83,7 @@ services:
 
 databases:
   - name: oorja-db
-    plan: free
+    plan: starter
     databaseName: oorja_db
     user: oorja_user
     region: oregon
