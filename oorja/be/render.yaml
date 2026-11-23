@@ -1,47 +1,55 @@
-# Render Blueprint — defines the backend web service and its PostgreSQL database.
-# Deploy by connecting this repo to Render and pointing it at this file, or
-# just use the Render dashboard and copy the env var names from here.
-#
+# Render Blueprint Specification
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
   - type: web
     name: oorja-backend
     runtime: docker
+    dockerContext: ./oorja/be
     dockerfilePath: ./oorja/be/Dockerfile
-    # Render sets PORT automatically; Spring Boot reads ${PORT:8080}
     plan: free
+    region: oregon
     healthCheckPath: /api/customer/services
     envVars:
       - key: JWT_SECRET
-        sync: false           # Must be set manually in Render dashboard
+        generateValue: true
       - key: ADMIN_PASSWORD
-        sync: false
+        generateValue: true
       - key: ADMIN_EMAIL
         value: admin@oorjaonmove.com
-      - key: RAZORPAY_KEY_ID
-        sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
-      - key: RAZORPAY_WEBHOOK_SECRET
-        sync: false
       - key: CORS_ALLOWED_ORIGINS
-        sync: false           # Set to your GitHub Pages URL after first deploy
+        value: "https://oorja-on-move.vercel.app,http://localhost:5173"
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_U3IO89Q2YmpVjo
+      - key: RAZORPAY_KEY_SECRET
+        value: W01ZMkbY9OSWsqxy8fCXur2D
+      - key: RAZORPAY_WEBHOOK_SECRET
+        generateValue: true
       - key: STORAGE_PROVIDER
         value: local
       - key: UPLOAD_DIR
         value: /tmp/oorja-uploads
       - key: MAIL_ENABLED
-        value: "false"        # Flip to true and add SMTP vars when ready
-      - key: SPRING_DATASOURCE_URL
+        value: "false"
+      - key: OTP_LOG_TO_CONSOLE
+        value: "true"
+      - key: DB_HOST
         fromDatabase:
           name: oorja-db
-          property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: oorja-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: oorja-db
+          property: database
+      - key: DB_USERNAME
         fromDatabase:
           name: oorja-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: DB_PASSWORD
         fromDatabase:
           name: oorja-db
           property: password
@@ -51,3 +59,4 @@ databases:
     plan: free
     databaseName: oorja_db
     user: oorja_user
+    region: oregon

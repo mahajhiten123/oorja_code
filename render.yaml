@@ -1,0 +1,62 @@
+# Render Blueprint Specification
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: oorja-backend
+    runtime: docker
+    dockerContext: ./oorja/be
+    dockerfilePath: ./oorja/be/Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/customer/services
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@oorjaonmove.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://oorja-on-move.vercel.app,http://localhost:5173"
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_U3IO89Q2YmpVjo
+      - key: RAZORPAY_KEY_SECRET
+        value: W01ZMkbY9OSWsqxy8fCXur2D
+      - key: RAZORPAY_WEBHOOK_SECRET
+        generateValue: true
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: UPLOAD_DIR
+        value: /tmp/oorja-uploads
+      - key: MAIL_ENABLED
+        value: "false"
+      - key: OTP_LOG_TO_CONSOLE
+        value: "true"
+      - key: DB_HOST
+        fromDatabase:
+          name: oorja-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: oorja-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: oorja-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: oorja-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: oorja-db
+          property: password
+
+databases:
+  - name: oorja-db
+    plan: free
+    databaseName: oorja_db
+    user: oorja_user
+    region: oregon
