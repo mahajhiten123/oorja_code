@@ -10,7 +10,7 @@ services:
     dockerfilePath: ./oorja/be/Dockerfile
     plan: starter
     region: oregon
-    healthCheckPath: /actuator/health
+    healthCheckPath: /health
     envVars:
       - key: JWT_SECRET
         generateValue: true

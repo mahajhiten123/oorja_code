@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(restAuthHandlers)
                 .accessDeniedHandler(restAuthHandlers))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/admin/auth/**", "/api/customer/auth/**", "/api/webhooks/**", "/actuator/health").permitAll()
+                .requestMatchers("/health", "/actuator/health", "/api/customer/services", "/api/admin/auth/**", "/api/customer/auth/**", "/api/webhooks/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/customer/bookings/slots").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("SUPER_ADMIN")
                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
