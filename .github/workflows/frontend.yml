@@ -41,37 +41,49 @@ jobs:
       - name: Type-check
         run: npx tsc -b --noEmit
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Build frontend
+        run: npm run build
 
-      # Pull project settings + env vars from Vercel
+      - name: Install Vercel CLI
+        if: env.HAS_VERCEL_TOKEN == 'true'
+        run: npm install -g vercel@latest
+        env:
+          HAS_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
+
+      # Pull project settings + env vars from Vercel (if token configured)
       - name: Pull Vercel environment
+        if: env.HAS_VERCEL_TOKEN == 'true'
         run: |
           vercel pull --yes \
             --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} \
             --token=${{ secrets.VERCEL_TOKEN }}
         env:
+          HAS_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # Build using Vercel's build pipeline (respects vercel.json)
+      # Build using Vercel's build pipeline (if token configured)
       - name: Build
+        if: env.HAS_VERCEL_TOKEN == 'true'
         run: |
           vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} \
             --token=${{ secrets.VERCEL_TOKEN }}
         env:
+          HAS_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      # Deploy the pre-built output
+      # Deploy the pre-built output (if token configured)
       - name: Deploy
         id: deploy
+        if: env.HAS_VERCEL_TOKEN == 'true'
         run: |
           url=$(vercel deploy --prebuilt \
             ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} \
             --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> $GITHUB_OUTPUT
         env:
+          HAS_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 

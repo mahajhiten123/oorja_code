@@ -134,7 +134,7 @@ jobs:
   deploy:
     name: Deploy to Render
     needs: docker
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.RENDER_DEPLOY_HOOK != ''
     runs-on: ubuntu-latest
 
     steps:
