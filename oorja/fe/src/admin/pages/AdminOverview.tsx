@@ -18,6 +18,16 @@ export function AdminOverview() {
   const [failed, setFailed] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /** Unwrap Spring Page<T> objects ({content:[…], totalElements:…}) or pass arrays through unchanged. */
+  const unwrap = <T,>(val: unknown): T[] => {
+    if (Array.isArray(val)) return val as T[];
+    if (val && typeof val === "object") {
+      const v = val as Record<string, unknown>;
+      if (Array.isArray(v.content)) return v.content as T[];
+    }
+    return [];
+  };
+
   const load = async () => {
     setLoading(true);
     const failures: string[] = [];
@@ -27,10 +37,10 @@ export function AdminOverview() {
       AdminQuotationsApi.list(),
       AdminRefundsApi.list()
     ]);
-    if (m.status === "fulfilled") setMembers(m.value); else failures.push("members");
-    if (b.status === "fulfilled") setBookings(b.value); else failures.push("bookings");
-    if (q.status === "fulfilled") setQuotations(q.value); else failures.push("quotations");
-    if (r.status === "fulfilled") setRefunds(r.value); else failures.push("refunds");
+    if (m.status === "fulfilled") setMembers(unwrap(m.value)); else failures.push("members");
+    if (b.status === "fulfilled") setBookings(unwrap(b.value)); else failures.push("bookings");
+    if (q.status === "fulfilled") setQuotations(unwrap(q.value)); else failures.push("quotations");
+    if (r.status === "fulfilled") setRefunds(unwrap(r.value)); else failures.push("refunds");
     setFailed(failures);
     setLoading(false);
   };
