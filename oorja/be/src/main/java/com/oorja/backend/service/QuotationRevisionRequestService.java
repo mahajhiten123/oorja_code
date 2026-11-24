@@ -91,6 +91,21 @@ public class QuotationRevisionRequestService {
         return QuotationRevisionRequestResponse.from(revisionRequestRepository.save(request));
     }
 
+    /** Admin resolves / completes review of a revision request. */
+    @Transactional
+    public QuotationRevisionRequestResponse resolve(Long requestId, Long adminId, ResolveRevisionRequestRequest request) {
+        QuotationRevisionRequest revisionRequest = getOrThrow(requestId);
+        if (revisionRequest.getStatus() == RevisionRequestStatus.RESOLVED
+                || revisionRequest.getStatus() == RevisionRequestStatus.REJECTED) {
+            throw ApiException.badRequest("This request has already been resolved.");
+        }
+        revisionRequest.setStatus(RevisionRequestStatus.RESOLVED);
+        revisionRequest.setResolutionNote(request != null ? request.note() : null);
+        revisionRequest.setResolvedAt(LocalDateTime.now());
+        revisionRequest.setResolvedBy(adminId);
+        return QuotationRevisionRequestResponse.from(revisionRequestRepository.save(revisionRequest));
+    }
+
     /** Admin declines to action a revision request — no new version is created. */
     @Transactional
     public QuotationRevisionRequestResponse reject(Long requestId, Long adminId, ResolveRevisionRequestRequest request) {

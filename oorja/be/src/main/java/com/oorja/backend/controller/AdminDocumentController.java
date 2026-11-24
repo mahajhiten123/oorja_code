@@ -29,7 +29,7 @@ public class AdminDocumentController {
     private final ServiceReportService serviceReportService;
 
     @GetMapping("/invoices")
-    public Page<InvoiceResponse> invoices(@PageableDefault(size = 20) Pageable pageable) {
+    public Page<InvoiceResponse> invoices(@PageableDefault(size = 500) Pageable pageable) {
         return invoiceService.findAllForAdmin(pageable);
     }
 

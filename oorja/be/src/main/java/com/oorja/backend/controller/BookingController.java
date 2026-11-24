@@ -33,7 +33,7 @@ public class BookingController {
     private final AttachmentService attachmentService;
 
     @GetMapping
-    public Page<BookingResponse> getAll(@PageableDefault(size = 20) Pageable pageable) {
+    public Page<BookingResponse> getAll(@PageableDefault(size = 500) Pageable pageable) {
         return bookingService.findAll(pageable);
     }
 

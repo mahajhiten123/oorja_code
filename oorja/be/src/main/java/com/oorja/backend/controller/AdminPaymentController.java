@@ -22,7 +22,7 @@ public class AdminPaymentController {
     private final PaymentService paymentService;
 
     @GetMapping
-    public Page<AdminPaymentResponse> getAll(@PageableDefault(size = 20) Pageable pageable) {
+    public Page<AdminPaymentResponse> getAll(@PageableDefault(size = 500) Pageable pageable) {
         return paymentService.findAllForAdmin(pageable);
     }
 

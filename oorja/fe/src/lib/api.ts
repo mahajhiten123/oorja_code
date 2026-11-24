@@ -246,6 +246,10 @@ async function requestOnce<T>(path: string, options: RequestOptions = {}, allowR
     throw new ApiError(message, res.status, data?.errors);
   }
 
+  if (data && typeof data === "object" && Array.isArray((data as any).content) && ("totalElements" in (data as any) || "totalPages" in (data as any))) {
+    return (data as any).content as T;
+  }
+
   return data as T;
 }
 
@@ -850,6 +854,8 @@ export const AdminQuotationsApi = {
   revisionRequests: (id: number) => adminHttp.get<QuotationRevisionRequest[]>(`/api/admin/quotations/${id}/revision-requests`),
   startReview: (requestId: number) =>
     adminHttp.post<QuotationRevisionRequest>(`/api/admin/quotations/revision-requests/${requestId}/start-review`),
+  resolveRevisionRequest: (requestId: number, note?: string) =>
+    adminHttp.post<QuotationRevisionRequest>(`/api/admin/quotations/revision-requests/${requestId}/resolve`, note ? { note } : undefined),
   rejectRevisionRequest: (requestId: number, note?: string) =>
     adminHttp.post<QuotationRevisionRequest>(`/api/admin/quotations/revision-requests/${requestId}/reject`, note ? { note } : undefined)
 };

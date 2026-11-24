@@ -146,6 +146,12 @@ export function AdminRefunds() {
             <div className="admin-card-actions">
               {(r.status === "REQUESTED" || r.status === "UNDER_REVIEW") && (
                 <>
+                  {r.status === "REQUESTED" && (
+                    <button className="btn btn-ghost" disabled={busyId === r.id}
+                            onClick={() => act(r.id, () => AdminRefundsApi.startReview(r.id))}>
+                      Start review
+                    </button>
+                  )}
                   <button className="btn btn-primary" disabled={busyId === r.id}
                           onClick={() => act(r.id, () => AdminRefundsApi.approve(r.id))}>
                     <Check size={13} /> Approve {inr(r.amountInr)}

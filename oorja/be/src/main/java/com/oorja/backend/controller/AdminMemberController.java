@@ -24,7 +24,7 @@ public class AdminMemberController {
     private final AdminMemberService adminMemberService;
 
     @GetMapping
-    public Page<AdminMemberResponse> getAll(@PageableDefault(size = 20) Pageable pageable) {
+    public Page<AdminMemberResponse> getAll(@PageableDefault(size = 500) Pageable pageable) {
         return adminMemberService.findAll(pageable);
     }
 

@@ -99,9 +99,14 @@ export function AdminQuotations() {
             )}
 
             {openCounts[q.id] > 0 && (
-              <p style={{ fontSize: 12.5, marginTop: 8, color: "var(--amber, #92660a)", display: "flex", alignItems: "center", gap: 5 }}>
-                <Clock size={13} /> {openCounts[q.id]} open revision request{openCounts[q.id] > 1 ? "s" : ""} from the customer
-              </p>
+              <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ fontSize: 12.5, margin: 0, color: "var(--amber, #92660a)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Clock size={13} /> {openCounts[q.id]} open revision request{openCounts[q.id] > 1 ? "s" : ""} from the customer
+                </p>
+                <button className="btn btn-ghost sm" style={{ fontSize: 11.5, padding: "3px 8px" }} onClick={() => setEditing(q)}>
+                  Review requests
+                </button>
+              </div>
             )}
 
             {q.attachments && q.attachments.length > 0 && (
@@ -202,6 +207,26 @@ function RevisionWorkspaceModal({ quotation, onClose, onDone }: { quotation: Quo
     }
   };
 
+  const handleStartReview = async (requestId: number) => {
+    try {
+      const updated = await AdminQuotationsApi.startReview(requestId);
+      setRequests(prev => (prev ?? []).map(r => r.id === requestId ? updated : r));
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Couldn't mark this request in-review.");
+    }
+  };
+
+  const handleResolveRequest = async (requestId: number) => {
+    const note = prompt("Optional note explaining how this request was resolved:") ?? undefined;
+    try {
+      await AdminQuotationsApi.resolveRevisionRequest(requestId, note || undefined);
+      setRequests(prev => (prev ?? []).filter(r => r.id !== requestId));
+      if (resolvingWith === requestId) setResolvingWith(null);
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Couldn't resolve this request.");
+    }
+  };
+
   const handleRejectRequest = async (requestId: number) => {
     const note = prompt("Optional note for why you're declining this request:") ?? undefined;
     try {
@@ -234,17 +259,32 @@ function RevisionWorkspaceModal({ quotation, onClose, onDone }: { quotation: Quo
             <div className="detail-section-title" style={{ margin: 0 }}>Customer revision requests</div>
             {requests.map(r => (
               <div key={r.id} style={{ border: "1px solid var(--admin-border, #e3e3e3)", borderRadius: 10, padding: "8px 10px", fontSize: 12.5 }}>
-                <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: 0, fontWeight: 400 }}>
-                  <input type="radio" name="resolve-with" style={{ width: "auto", marginTop: 3 }}
-                    checked={resolvingWith === r.id} onChange={() => setResolvingWith(r.id)} />
-                  <span>
-                    <b>{REVISION_REASON_LABEL[r.reason] ?? r.reason}</b> · v{r.quotationVersionNumber}
-                    <div className="muted" style={{ marginTop: 2 }}>"{r.message}"</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, margin: 0, fontWeight: 400 }}>
+                    <input type="radio" name="resolve-with" style={{ width: "auto", marginTop: 3 }}
+                      checked={resolvingWith === r.id} onChange={() => setResolvingWith(r.id)} />
+                    <span>
+                      <b>{REVISION_REASON_LABEL[r.reason] ?? r.reason}</b> · v{r.quotationVersionNumber}
+                      <div className="muted" style={{ marginTop: 2 }}>"{r.message}"</div>
+                    </span>
+                  </label>
+                  <span className={`status ${r.status === "IN_REVIEW" ? "assigned" : "pending"}`} style={{ fontSize: 11 }}>
+                    {r.status === "IN_REVIEW" ? "Under Review" : "Open"}
                   </span>
-                </label>
-                <button className="text-link" style={{ fontSize: 11.5, marginTop: 4 }} onClick={() => handleRejectRequest(r.id)}>
-                  Reject this request
-                </button>
+                </div>
+                <div style={{ display: "flex", gap: 12, marginTop: 6, paddingLeft: 24 }}>
+                  {r.status === "OPEN" && (
+                    <button className="text-link" style={{ fontSize: 11.5 }} onClick={() => handleStartReview(r.id)}>
+                      Start review
+                    </button>
+                  )}
+                  <button className="text-link" style={{ fontSize: 11.5, color: "var(--green)" }} onClick={() => handleResolveRequest(r.id)}>
+                    Complete review
+                  </button>
+                  <button className="text-link danger" style={{ fontSize: 11.5 }} onClick={() => handleRejectRequest(r.id)}>
+                    Reject
+                  </button>
+                </div>
               </div>
             ))}
             {resolvingWith != null && (

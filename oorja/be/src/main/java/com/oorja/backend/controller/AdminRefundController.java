@@ -33,7 +33,7 @@ public class AdminRefundController {
     private final RefundReconciliationJob reconciliationJob;
 
     @GetMapping
-    public Page<RefundResponse> getAll(@PageableDefault(size = 20) Pageable pageable) {
+    public Page<RefundResponse> getAll(@PageableDefault(size = 500) Pageable pageable) {
         return refundService.findAll(pageable);
     }
 

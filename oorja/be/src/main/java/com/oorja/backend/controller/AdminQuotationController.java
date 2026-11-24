@@ -88,6 +88,13 @@ public class AdminQuotationController {
         return revisionRequestService.startReview(requestId);
     }
 
+    /** Resolves / completes review of a revision request without generating a new version. */
+    @PostMapping("/revision-requests/{requestId}/resolve")
+    public QuotationRevisionRequestResponse resolveRevisionRequest(@PathVariable Long requestId,
+                                                                   @Valid @RequestBody(required = false) ResolveRevisionRequestRequest request) {
+        return revisionRequestService.resolve(requestId, CurrentUser.get().userId(), request);
+    }
+
     /** Declines to action a revision request — no new version is created. */
     @PostMapping("/revision-requests/{requestId}/reject")
     public QuotationRevisionRequestResponse rejectRevisionRequest(@PathVariable Long requestId,
